@@ -10,11 +10,11 @@ use Mix.Config
 
 # You can configure your application as:
 #
-#     config :magic_pipe, key: :value
+#     config :pipette, key: :value
 #
 # and access this configuration in your application as:
 #
-#     Application.get_env(:magic_pipe, :key)
+#     Application.get_env(:pipette, :key)
 #
 # You can also configure a 3rd-party app:
 #

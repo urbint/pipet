@@ -1,9 +1,9 @@
 defmodule Kernel.ExtraTest do
   use ExUnit.Case, async: true
 
-  import MagicPipe
+  import Pipette
 
-  describe "magic_pipe" do
+  describe "pipette" do
     require Integer
     def inc(x), do: x + 1
     def add(x, y), do: x + y
@@ -12,7 +12,7 @@ defmodule Kernel.ExtraTest do
 
     test "conditionally pipes through the bodies of succeeding tests" do
       result =
-        magic_pipe 1 do
+        pipette 1 do
           inc()                            # 2
           if return_true(), do: inc()      # 3
           if return_false(), do: inc()     # 3

@@ -1,10 +1,10 @@
-defmodule MagicPipe do
+defmodule Pipette do
   @moduledoc """
   Macro for conditionally piping a value through a series of expressions.
 
   ## Prior art
 
-  MagicPipe was heavily inspired by, and would not exist without:
+  Pipette was heavily inspired by, and would not exist without:
 
   - [clojure's `cond->` macro](https://clojuredocs.org/clojure.core/cond-%3E)
   - [packthread for clojure](https://github.com/maitria/packthread)
@@ -30,7 +30,7 @@ defmodule MagicPipe do
 
   Basic `if` conditions are supported:
 
-      magic_pipe [1, 2, 3] do
+      pipette [1, 2, 3] do
         if do_increment?(), do: Enum.map(& &1 + 1)
         if do_double?(),    do: map(& &1 * 1)
         if do_string?(),    do: Enum.map(&to_string/1)
@@ -38,7 +38,7 @@ defmodule MagicPipe do
 
   `case` and `cond` use whichever branch succeeds:
 
-      magic_pipe [1, 2, 3] do
+      pipette [1, 2, 3] do
         case operation do
           :increment -> Enum.map(& &1 + 1)
           :double    -> map(& &1 * 1)
@@ -48,14 +48,14 @@ defmodule MagicPipe do
 
   Conditional expressions can be combined with bare function calls, which will always execute:
 
-      magic_pipe ["1", "2", "3"] do
+      pipette ["1", "2", "3"] do
         String.to_integer()
         if do_increment?(), do: Enum.map(& &1 + 1)
       end
 
   Multi-expression bodies pipe through the last expression:
 
-      magic_pipe [1, 2, 3] do
+      pipette [1, 2, 3] do
         if do_add_num?() do
           num = 3
           Enum.map(& &1 + num)
@@ -73,14 +73,14 @@ defmodule MagicPipe do
 
   ## Notes
 
-  - `magic_pipe` evaluates conditions in order, not all at once. For example, the following:
+  - `pipette` evaluates conditions in order, not all at once. For example, the following:
 
         def print_hello_and_return_true() do
           IO.puts "hello"
           true
         end
 
-        magic_pipe 1 do
+        pipette 1 do
           if print_hello_and_return_true() do
             IO.puts "world"
             increment()
@@ -100,7 +100,7 @@ defmodule MagicPipe do
     `CaseClauseError` will be thrown. If you want a fallthrough case you can provide a call to the
     identity function:
 
-        magic_pipe 1 do
+        pipette 1 do
           case {:foo, :bar} do
             :never_matches -> increment()
             _ -> (& &1).()
@@ -111,8 +111,8 @@ defmodule MagicPipe do
     enough as to not be much of an issue, but it's important to note for now
 
   """
-  @spec magic_pipe(Macro.t, do: [Macro.t]) :: Macro.t
-  defmacro magic_pipe(subject, do: pipes) do
+  @spec pipette(Macro.t, do: [Macro.t]) :: Macro.t
+  defmacro pipette(subject, do: pipes) do
     pipes =
       case pipes do
         {:__block__, _, exprs} -> exprs
@@ -125,14 +125,14 @@ defmodule MagicPipe do
 
       quote do
         unquote(var) = unquote(acc)
-        unquote(magic_pipe_expr(var, expr))
+        unquote(pipette_expr(var, expr))
       end
     end
   end
 
 
-  @spec magic_pipe_expr(Macro.t, Macro.t) :: Macro.t
-  defp magic_pipe_expr(value, {:if, _, [condition, [do: body]]}) do
+  @spec pipette_expr(Macro.t, Macro.t) :: Macro.t
+  defp pipette_expr(value, {:if, _, [condition, [do: body]]}) do
     quote do
       if unquote(condition) do
         unquote(Macro.pipe(value, body, 0))
@@ -142,7 +142,7 @@ defmodule MagicPipe do
     end
   end
 
-  defp magic_pipe_expr(value, {:unless, _, [condition, [do: body]]}) do
+  defp pipette_expr(value, {:unless, _, [condition, [do: body]]}) do
     quote do
       if unquote(condition) do
         unquote(value)
@@ -152,19 +152,19 @@ defmodule MagicPipe do
     end
   end
 
-  defp magic_pipe_expr(value, {:cond, _, [[do: conditions]]}) do
+  defp pipette_expr(value, {:cond, _, [[do: conditions]]}) do
     quote do
       cond do: unquote(pipe_arrows(value, conditions))
     end
   end
 
-  defp magic_pipe_expr(value, {:case, _, [subj, [do: conditions]]}) do
+  defp pipette_expr(value, {:case, _, [subj, [do: conditions]]}) do
     quote do
       case unquote(subj), do: unquote(pipe_arrows(value, conditions))
     end
   end
 
-  defp magic_pipe_expr(value, fcall) do
+  defp pipette_expr(value, fcall) do
     Macro.pipe(value, fcall, 0)
   end
 
