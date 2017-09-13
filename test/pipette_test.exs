@@ -1,10 +1,9 @@
-defmodule Kernel.ExtraTest do
+defmodule PipetteTest do
   use ExUnit.Case, async: true
 
   import Pipette
 
   describe "pipette" do
-    require Integer
     def inc(x), do: x + 1
     def add(x, y), do: x + y
     def return_true(), do: true
@@ -30,6 +29,32 @@ defmodule Kernel.ExtraTest do
         end
 
       assert result == 9
+    end
+
+    test "supports `else` blocks for `if`" do
+      result =
+        pipette 1 do
+          if return_false() do
+            add(2)
+          else
+            inc() # 2
+          end
+        end
+
+      assert result == 2
+    end
+
+    test "supports `else` blocks for `unless` (but you shouldn't use them)" do
+      result =
+        pipette 1 do
+          unless return_false() do
+            add(2) # 3
+          else
+            inc()
+          end
+        end
+
+      assert result == 3
     end
   end
 end

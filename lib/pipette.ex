@@ -107,9 +107,6 @@ defmodule Pipette do
           end
         end
 
-  - `else` is not currently supported for `if` or `unless` - this will almost definitely happen soon
-    enough as to not be much of an issue, but it's important to note for now
-
   """
   @spec pipette(Macro.t, do: [Macro.t]) :: Macro.t
   defmacro pipette(subject, do: pipes) do
@@ -132,24 +129,39 @@ defmodule Pipette do
 
 
   @spec pipette_expr(Macro.t, Macro.t) :: Macro.t
-  defp pipette_expr(value, {:if, _, [condition, [do: body]]}) do
+  defp pipette_expr(value, {:if, _, [condition, opts]}) do
+    [true_body, false_body] =
+      Enum.map([:do, :else], fn opt ->
+        case Keyword.fetch(opts, opt) do
+          {:ok, body} -> Macro.pipe(value, body, 0)
+          _           -> value
+        end
+      end)
+
     quote do
       if unquote(condition) do
-        unquote(Macro.pipe(value, body, 0))
+        unquote(true_body)
       else
-        unquote(value)
+        unquote(false_body)
       end
     end
   end
 
-  defp pipette_expr(value, {:unless, _, [condition, [do: body]]}) do
-    quote do
-      if unquote(condition) do
-        unquote(value)
-      else
-        unquote(Macro.pipe(value, body, 0))
-      end
+  defp pipette_expr(value, {:unless, env, [condition, opts]}) do
+    [false_body, true_body] =
+      Enum.map([:do, :else], &Keyword.get(opts, &1))
+
+    put_ifex = fn
+      kw, _, nil   -> kw
+      kw, key, val -> Keyword.put(kw, key, val)
     end
+
+    new_opts =
+      []
+      |> put_ifex.(:else, false_body)
+      |> put_ifex.(:do, true_body)
+
+    pipette_expr(value, {:if, env, [conditional, new_opts]})
   end
 
   defp pipette_expr(value, {:cond, _, [[do: conditions]]}) do
