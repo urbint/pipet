@@ -161,7 +161,7 @@ defmodule Pipette do
       |> put_ifex.(:else, false_body)
       |> put_ifex.(:do, true_body)
 
-    pipette_expr(value, {:if, env, [conditional, new_opts]})
+    pipette_expr(value, {:if, env, [condition, new_opts]})
   end
 
   defp pipette_expr(value, {:cond, _, [[do: conditions]]}) do
