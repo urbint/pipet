@@ -11,18 +11,15 @@ defmodule Pipette.Mixfile do
     ]
   end
 
-  # Run "mix help compile.app" to learn about applications.
-  def application do
+  defp deps do
     [
-      extra_applications: [:logger]
+      {:cortex, "~> 0.2.1", only: [:test, :dev], runtime: !ci_build?()},
+      {:credo, "~> 0.8", only: [:dev, :test]},
+      {:dialyxir, "~> 0.5", only: [:dev], runtime: false},
+      {:ex_doc, ">= 0.0.0", only: :dev},
+      {:ex_dash, "~> 0.1", only: [:dev]},
     ]
   end
 
-  # Run "mix help deps" to learn about dependencies.
-  defp deps do
-    [
-      # {:dep_from_hexpm, "~> 0.3.0"},
-      # {:dep_from_git, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.1.0"},
-    ]
-  end
+  defp ci_build?, do: System.get_env("CI") != nil
 end
