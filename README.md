@@ -1,4 +1,4 @@
-# Pipette
+# Pipette [![CircleCI](https://circleci.com/gh/urbint/pipette/tree/master.svg?style=svg)](https://circleci.com/gh/urbint/pipette/tree/master)
 
 **TODO: Add description**
 
