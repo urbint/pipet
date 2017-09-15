@@ -1,13 +1,21 @@
 defmodule Pipette.Mixfile do
   use Mix.Project
 
+  @version "0.1.0"
+
   def project do
     [
       app: :pipette,
-      version: "0.1.0",
+      version: @version,
       elixir: "~> 1.5",
       start_permanent: Mix.env == :prod,
-      deps: deps()
+      deps: deps(),
+      docs: [
+        main: "Pipette",
+        source_url: "https://github.com/urbint/pipette",
+      ],
+     package: package(),
+     description: description(),
     ]
   end
 
@@ -22,4 +30,28 @@ defmodule Pipette.Mixfile do
   end
 
   defp ci_build?, do: System.get_env("CI") != nil
+
+  defp description do
+    """
+    A library for conditionally chaining data through a series of operations
+    """
+  end
+
+  defp package do
+    [
+      name: :pipette,
+      files: [
+        "lib",
+        "mix.exs",
+        "README.md",
+        "History.md",
+        "LICENSE"
+      ],
+      maintainers: [
+        "Griffin Smith <grfn at urbint dot com>",
+      ],
+      licenses: ["MIT"],
+      links: %{"GitHub" => "https://github.com/urbint/pipette"},
+    ]
+  end
 end
