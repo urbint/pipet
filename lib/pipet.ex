@@ -75,37 +75,37 @@ defmodule Pipet do
 
   - `pipet` evaluates conditions in order, not all at once. For example, the following:
 
-        def print_hello_and_return_true() do
-          IO.puts "hello"
-          true
-        end
+          def print_hello_and_return_true() do
+            IO.puts "hello"
+            true
+          end
 
-        pipet 1 do
-          if print_hello_and_return_true() do
-            IO.puts "world"
-            increment()
+          pipet 1 do
+            if print_hello_and_return_true() do
+              IO.puts "world"
+              increment()
+            end
+            unless print_hello_and_return_true() do
+              IO.puts "goodbye"
+            end
           end
-          unless print_hello_and_return_true() do
-            IO.puts "goodbye"
-          end
-        end
 
     prints:
 
-    > hello
-    > world
-    > hello
+        > hello
+        > world
+        > hello
 
   - the rules for `case` are as usual - if none of the branches of a `case` block match a
     `CaseClauseError` will be thrown. If you want a fallthrough case you can provide a call to the
     identity function:
 
-        pipet 1 do
-          case {:foo, :bar} do
-            :never_matches -> increment()
-            _ -> (& &1).()
+          pipet 1 do
+            case {:foo, :bar} do
+              :never_matches -> increment()
+              _ -> (& &1).()
+            end
           end
-        end
 
   """
   @spec pipet(Macro.t, do: [Macro.t]) :: Macro.t
