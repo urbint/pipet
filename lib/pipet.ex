@@ -1,10 +1,10 @@
-defmodule Pipette do
+defmodule Pipet do
   @moduledoc """
   Macro for conditionally piping a value through a series of expressions.
 
   ## Prior art
 
-  Pipette was heavily inspired by, and would not exist without:
+  Pipet was heavily inspired by, and would not exist without:
 
   - [clojure's `cond->` macro](https://clojuredocs.org/clojure.core/cond-%3E)
   - [packthread for clojure](https://github.com/maitria/packthread)
@@ -30,7 +30,7 @@ defmodule Pipette do
 
   Basic `if` conditions are supported:
 
-      pipette [1, 2, 3] do
+      pipet [1, 2, 3] do
         if do_increment?(), do: Enum.map(& &1 + 1)
         if do_double?(),    do: map(& &1 * 1)
         if do_string?(),    do: Enum.map(&to_string/1)
@@ -38,7 +38,7 @@ defmodule Pipette do
 
   `case` and `cond` use whichever branch succeeds:
 
-      pipette [1, 2, 3] do
+      pipet [1, 2, 3] do
         case operation do
           :increment -> Enum.map(& &1 + 1)
           :double    -> map(& &1 * 1)
@@ -48,14 +48,14 @@ defmodule Pipette do
 
   Conditional expressions can be combined with bare function calls, which will always execute:
 
-      pipette ["1", "2", "3"] do
+      pipet ["1", "2", "3"] do
         String.to_integer()
         if do_increment?(), do: Enum.map(& &1 + 1)
       end
 
   Multi-expression bodies pipe through the last expression:
 
-      pipette [1, 2, 3] do
+      pipet [1, 2, 3] do
         if do_add_num?() do
           num = 3
           Enum.map(& &1 + num)
@@ -73,14 +73,14 @@ defmodule Pipette do
 
   ## Notes
 
-  - `pipette` evaluates conditions in order, not all at once. For example, the following:
+  - `pipet` evaluates conditions in order, not all at once. For example, the following:
 
         def print_hello_and_return_true() do
           IO.puts "hello"
           true
         end
 
-        pipette 1 do
+        pipet 1 do
           if print_hello_and_return_true() do
             IO.puts "world"
             increment()
@@ -100,7 +100,7 @@ defmodule Pipette do
     `CaseClauseError` will be thrown. If you want a fallthrough case you can provide a call to the
     identity function:
 
-        pipette 1 do
+        pipet 1 do
           case {:foo, :bar} do
             :never_matches -> increment()
             _ -> (& &1).()
@@ -108,8 +108,8 @@ defmodule Pipette do
         end
 
   """
-  @spec pipette(Macro.t, do: [Macro.t]) :: Macro.t
-  defmacro pipette(subject, do: pipes) do
+  @spec pipet(Macro.t, do: [Macro.t]) :: Macro.t
+  defmacro pipet(subject, do: pipes) do
     pipes =
       case pipes do
         {:__block__, _, exprs} -> exprs
@@ -122,14 +122,14 @@ defmodule Pipette do
 
       quote do
         unquote(var) = unquote(acc)
-        unquote(pipette_expr(var, expr))
+        unquote(pipet_expr(var, expr))
       end
     end
   end
 
 
-  @spec pipette_expr(Macro.t, Macro.t) :: Macro.t
-  defp pipette_expr(value, {:if, _, [condition, opts]}) do
+  @spec pipet_expr(Macro.t, Macro.t) :: Macro.t
+  defp pipet_expr(value, {:if, _, [condition, opts]}) do
     [true_body, false_body] =
       Enum.map([:do, :else], fn opt ->
         case Keyword.fetch(opts, opt) do
@@ -147,7 +147,7 @@ defmodule Pipette do
     end
   end
 
-  defp pipette_expr(value, {:unless, env, [condition, opts]}) do
+  defp pipet_expr(value, {:unless, env, [condition, opts]}) do
     [false_body, true_body] =
       Enum.map([:do, :else], &Keyword.get(opts, &1))
 
@@ -161,22 +161,22 @@ defmodule Pipette do
       |> put_ifex.(:else, false_body)
       |> put_ifex.(:do, true_body)
 
-    pipette_expr(value, {:if, env, [condition, new_opts]})
+    pipet_expr(value, {:if, env, [condition, new_opts]})
   end
 
-  defp pipette_expr(value, {:cond, _, [[do: conditions]]}) do
+  defp pipet_expr(value, {:cond, _, [[do: conditions]]}) do
     quote do
       cond do: unquote(pipe_arrows(value, conditions))
     end
   end
 
-  defp pipette_expr(value, {:case, _, [subj, [do: conditions]]}) do
+  defp pipet_expr(value, {:case, _, [subj, [do: conditions]]}) do
     quote do
       case unquote(subj), do: unquote(pipe_arrows(value, conditions))
     end
   end
 
-  defp pipette_expr(value, fcall) do
+  defp pipet_expr(value, fcall) do
     Macro.pipe(value, fcall, 0)
   end
 

@@ -1,20 +1,20 @@
-# Pipette [![CircleCI](https://circleci.com/gh/urbint/pipette/tree/master.svg?style=svg)](https://circleci.com/gh/urbint/pipette/tree/master)
+# Pipet [![CircleCI](https://circleci.com/gh/urbint/pipet/tree/master.svg?style=svg)](https://circleci.com/gh/urbint/pipet/tree/master)
 
 A library for conditionally chaining data through a series of operations
 
 ## Installation
 
-Add `pipette` to your list of dependencies in `mix.exs`.
+Add `pipet` to your list of dependencies in `mix.exs`.
 
 ```elixir
 def deps do
   [
-    {:pipette, "~> 0.1.0"}
+    {:pipet, "~> 0.1.0"}
   ]
 end
 ```
 
-[Documentation can be found here](https://hexdocs.pm/pipette).
+[Documentation can be found here](https://hexdocs.pm/pipet).
 
 Elixir's `|>` (pipe) operator is one of its best features; it mixes extremely
 well with a functional, immutable style of programming. It tends to break down,
@@ -41,16 +41,16 @@ def get_names(people, options \\ []) do
 end
 ```
 
-Pipette provides a single macro, `pipette`, which extends the semantics of
+Pipet provides a single macro, `pipet`, which extends the semantics of
 piping to function properly with all of elixir's built-in conditional
 expressions in a simple, clean, and obvious way. The code sample above could be
-rewritten with `pipette` like this:
+rewritten with `pipet` like this:
 
 ```elixir
-import Pipette
+import Pipet
 
 def get_names(people, options \\ []) do
-  pipette people do
+  pipet people do
     Stream.map(fn %Person{name: name} -> name end)
 
     if Keyword.fetch(options, :upcasee) do
@@ -65,7 +65,7 @@ end
 Way cleaner! No variable rebinding, no pointless `else` block for the `if`
 statement, just the code that matters.
 
-Pipette works with all of Elixir's built-in conditional operators in addition to
+Pipet works with all of Elixir's built-in conditional operators in addition to
 just `if`. All the following should work exactly as you expect them to:
 
 - `if`
@@ -75,7 +75,7 @@ just `if`. All the following should work exactly as you expect them to:
 
 ## Prior Art
 
-Pipette originally started as a port of the Clojure standard library's [`cond->`
+Pipet originally started as a port of the Clojure standard library's [`cond->`
 macro][cond->], before very quickly outgrowing the feature set of that macro
 into something that very closely resembles [packthread][packthread], also for
 Clojure. Acknowledgements go to [@richhickey][] for the former and [@eraserhd][]

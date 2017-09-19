@@ -1,18 +1,18 @@
-defmodule Pipette.Mixfile do
+defmodule Pipet.Mixfile do
   use Mix.Project
 
   @version "0.1.0"
 
   def project do
     [
-      app: :pipette,
+      app: :pipet,
       version: @version,
       elixir: "~> 1.5",
       start_permanent: Mix.env == :prod,
       deps: deps(),
       docs: [
-        main: "Pipette",
-        source_url: "https://github.com/urbint/pipette",
+        main: "Pipet",
+        source_url: "https://github.com/urbint/pipet",
       ],
      package: package(),
      description: description(),
@@ -39,7 +39,7 @@ defmodule Pipette.Mixfile do
 
   defp package do
     [
-      name: :pipette,
+      name: :pipet,
       files: [
         "lib",
         "mix.exs",
@@ -51,7 +51,7 @@ defmodule Pipette.Mixfile do
         "Griffin Smith <grfn at urbint dot com>",
       ],
       licenses: ["MIT"],
-      links: %{"GitHub" => "https://github.com/urbint/pipette"},
+      links: %{"GitHub" => "https://github.com/urbint/pipet"},
     ]
   end
 end

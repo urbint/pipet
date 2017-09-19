@@ -1,9 +1,9 @@
-defmodule PipetteTest do
+defmodule PipetTest do
   use ExUnit.Case, async: true
 
-  import Pipette
+  import Pipet
 
-  describe "pipette" do
+  describe "pipet" do
     def inc(x), do: x + 1
     def add(x, y), do: x + y
     def return_true(), do: true
@@ -11,7 +11,7 @@ defmodule PipetteTest do
 
     test "conditionally pipes through the bodies of succeeding tests" do
       result =
-        pipette 1 do
+        pipet 1 do
           inc()                            # 2
           if return_true(), do: inc()      # 3
           if return_false(), do: inc()     # 3
@@ -33,7 +33,7 @@ defmodule PipetteTest do
 
     test "supports `else` blocks for `if`" do
       result =
-        pipette 1 do
+        pipet 1 do
           if return_false() do
             add(2)
           else
@@ -46,7 +46,7 @@ defmodule PipetteTest do
 
     test "supports `else` blocks for `unless` (but you shouldn't use them)" do
       result =
-        pipette 1 do
+        pipet 1 do
           unless return_false() do
             add(2) # 3
           else
