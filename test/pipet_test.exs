@@ -31,9 +31,16 @@ defmodule PipetTest do
           with {:ok, x} <- return_ok_tuple() do
             add(x)                         # 16
           end
+
+          with :error <- return_ok_tuple() do
+            inc()
+          else
+            {:ok, x} ->
+              add(x)                       # 23
+          end
         end
 
-      assert result == 16
+      assert result == 23
     end
 
     test "supports `else` blocks for `if`" do
@@ -61,5 +68,6 @@ defmodule PipetTest do
 
       assert result == 3
     end
+
   end
 end
