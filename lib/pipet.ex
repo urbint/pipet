@@ -47,12 +47,14 @@ defmodule Pipet do
         end
       end
 
-  `with` uses the success branch if it succeeds, a succeeding `else` branch if present, or passes
-  through if nothing succeeds:
+  `with` pipes through the `do` block if all pattern matches succeed, or uses the first successful
+  `else` block if a pattern fails.
 
       pipet [1, 2, 3] do
         with {:ok, x} <- get_value() do
           Enum.map(& &1 + x)
+        else
+          :something_else -> Enum.map(& &1 + 1)
         end
       end
 
@@ -102,17 +104,27 @@ defmodule Pipet do
 
     prints:
 
-        > hello
-        > world
-        > hello
+          > hello
+          > world
+          > hello
 
-  - the rules for `case` are as usual - if none of the branches of a `case` block match a
-    `CaseClauseError` will be thrown. If you want a fallthrough case you can provide a call to the
+  - the rules for `case` and `with` are as usual - if none of the branches of a `case` block or of
+    an `else` block in a `with` statement match a `CaseClauseError` or `WithClauseError`
+    respectively will be thrown. If you want a fallthrough case, you can provide a call to the
     identity function:
 
           pipet 1 do
             case {:foo, :bar} do
               :never_matches -> increment()
+              _ -> (& &1).()
+            end
+          end
+
+          pipet 1 do
+            with {:ok, x} <- :some_tuple do
+              increment()
+            else
+              :doesnt_match -> increment()
               _ -> (& &1).()
             end
           end
@@ -187,14 +199,19 @@ defmodule Pipet do
   end
 
   defp pipet_expr(value, {:with, _, args}) do
-    {conds, [[do: body]]} =
+    {conds, [opts]} =
       Enum.split(args, length(args) - 1)
 
-    quote do
-      with unquote_splicing(conds) do
-        unquote(Macro.pipe(value, body, 0))
+    piped_opts =
+      case Keyword.fetch(opts, :else) do
+        {:ok, else_body} -> [else: pipe_arrows(value, else_body)]
+        _                -> []
       end
-    end
+      |> Keyword.put(:do, Macro.pipe(value, opts[:do], 0))
+
+    with_args = conds ++ [piped_opts]
+
+    quote do: with unquote_splicing(with_args)
   end
 
   defp pipet_expr(value, fcall) do
