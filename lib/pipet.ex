@@ -142,6 +142,9 @@ defmodule Pipet do
       var =
         Macro.var(:"V#{idx}", __MODULE__)
 
+      expr =
+        Macro.expand(expr, __CALLER__)
+
       quote do
         unquote(var) = unquote(acc)
         unquote(pipet_expr(var, expr))
@@ -151,41 +154,6 @@ defmodule Pipet do
 
 
   @spec pipet_expr(Macro.t, Macro.t) :: Macro.t
-  defp pipet_expr(value, {:if, _, [condition, opts]}) do
-    [true_body, false_body] =
-      Enum.map([:do, :else], fn opt ->
-        case Keyword.fetch(opts, opt) do
-          {:ok, body} -> Macro.pipe(value, body, 0)
-          _           -> value
-        end
-      end)
-
-    quote do
-      if unquote(condition) do
-        unquote(true_body)
-      else
-        unquote(false_body)
-      end
-    end
-  end
-
-  defp pipet_expr(value, {:unless, env, [condition, opts]}) do
-    [false_body, true_body] =
-      Enum.map([:do, :else], &Keyword.get(opts, &1))
-
-    put_ifex = fn
-      kw, _, nil   -> kw
-      kw, key, val -> Keyword.put(kw, key, val)
-    end
-
-    new_opts =
-      []
-      |> put_ifex.(:else, false_body)
-      |> put_ifex.(:do, true_body)
-
-    pipet_expr(value, {:if, env, [condition, new_opts]})
-  end
-
   defp pipet_expr(value, {:cond, _, [[do: conditions]]}) do
     quote do
       cond do: unquote(pipe_arrows(value, conditions))
@@ -220,25 +188,31 @@ defmodule Pipet do
 
   defp pipe_arrows(value, arrows) do
     Enum.flat_map arrows, fn {:->, _, [lhs, rhs]} ->
-      rhs =
-        case rhs do
-          {:__block__, _, exprs} ->
-            last =
-              List.last(exprs)
-            butlast =
-              Enum.slice(exprs, 0..-2)
-
-            quote do
-              unquote_splicing(butlast)
-              unquote(Macro.pipe(value, last, 0))
-            end
-
-          expr ->
-            Macro.pipe(value, expr, 0)
+      if rhs == nil do
+        quote do
+          unquote_splicing(lhs) -> unquote(value)
         end
+      else
+        rhs =
+          case rhs do
+            {:__block__, _, exprs} ->
+              last =
+                List.last(exprs)
+              butlast =
+                Enum.slice(exprs, 0..-2)
 
-      quote do
-        unquote_splicing(lhs) -> unquote(rhs)
+              quote do
+                unquote_splicing(butlast)
+                unquote(Macro.pipe(value, last, 0))
+              end
+
+            expr ->
+              Macro.pipe(value, expr, 0)
+          end
+
+        quote do
+          unquote_splicing(lhs) -> unquote(rhs)
+        end
       end
     end
   end
