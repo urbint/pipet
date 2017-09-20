@@ -8,6 +8,7 @@ defmodule PipetTest do
     def add(x, y), do: x + y
     def return_true(), do: true
     def return_false(), do: false
+    def return_ok_tuple(), do: {:ok, 7}
 
     test "conditionally pipes through the bodies of succeeding tests" do
       result =
@@ -26,9 +27,13 @@ defmodule PipetTest do
             true  -> inc()                 # 9
             false -> add(2)
           end
+
+          with {:ok, x} <- return_ok_tuple() do
+            add(x)                         # 16
+          end
         end
 
-      assert result == 9
+      assert result == 16
     end
 
     test "supports `else` blocks for `if`" do

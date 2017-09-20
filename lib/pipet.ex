@@ -23,6 +23,7 @@ defmodule Pipet do
   - `unless`
   - `cond`
   - `case`
+  - `with`
 
   Raw function calls are also supported, in which case the value is piped through just like in `|>`
 
@@ -32,7 +33,7 @@ defmodule Pipet do
 
       pipet [1, 2, 3] do
         if do_increment?(), do: Enum.map(& &1 + 1)
-        if do_double?(),    do: map(& &1 * 1)
+        if do_double?(),    do: Enum.map(& &1 * 1)
         if do_string?(),    do: Enum.map(&to_string/1)
       end
 
@@ -43,6 +44,15 @@ defmodule Pipet do
           :increment -> Enum.map(& &1 + 1)
           :double    -> map(& &1 * 1)
           :string    -> Enum.map(&to_string/1)
+        end
+      end
+
+  `with` uses the success branch if it succeeds, a succeeding `else` branch if present, or passes
+  through if nothing succeeds:
+
+      pipet [1, 2, 3] do
+        with {:ok, x} <- get_value() do
+          Enum.map(& &1 + x)
         end
       end
 
@@ -173,6 +183,17 @@ defmodule Pipet do
   defp pipet_expr(value, {:case, _, [subj, [do: conditions]]}) do
     quote do
       case unquote(subj), do: unquote(pipe_arrows(value, conditions))
+    end
+  end
+
+  defp pipet_expr(value, {:with, _, args}) do
+    {conds, [[do: body]]} =
+      Enum.split(args, length(args) - 1)
+
+    quote do
+      with unquote_splicing(conds) do
+        unquote(Macro.pipe(value, body, 0))
+      end
     end
   end
 
