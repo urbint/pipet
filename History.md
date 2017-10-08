@@ -1,5 +1,5 @@
 
-0.1.3 / 2017-10-08
+0.1.4 / 2017-10-08
 ==================
 
   * refactor(): Expand and parse special forms, not macros
